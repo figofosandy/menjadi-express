@@ -65,7 +65,6 @@ app.post('/profile/create',async(req,res)=>{
         content:result
     }
     res.status(statusCode).json(respon)
-    
 })
 
 // create route request get for /profile/list
