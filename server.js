@@ -35,19 +35,37 @@ app.post('/hello',function(req,res){
 // create route request post for /profile/create
 app.post('/profile/create',async(req,res)=>{
     console.log(req.body) // show input in console
-    const input={
-        firstName:req.body.firstName,
-        lastName:req.body.lastName
-    } // menambahkan value dari input ke field Model
-    var person=new PersonModel(input) // Membuat model baru
-    var result=await person.save() // Jalankan query create
+    let statusCode=200
+    let error=""
+    let message=""
+    let result=null
+    if(!req.body.firstName||!req.body.lastName){
+        statusCode=400
+        let missing=""
+        if(!req.body.firstName){
+            missing+="firstname "
+        }
+        if(!req.body.lastName){
+            missing+="lastname "
+        }
+        error=missing+"payload is required"
+        message=error
+    } else {
+        const input={
+            firstName:req.body.firstName,
+            lastName:req.body.lastName
+        } // menambahkan value dari input ke field Model
+        var person=new PersonModel(input) // Membuat model baru
+        result=await person.save() // Jalankan query create
+    }
     const respon={
-        statusCode:200,
-        error:"",
-        message:"created",
+        statusCode:statusCode,
+        error:error,
+        message:message,
         content:result
     }
-    res.json(respon)
+    res.status(statusCode).json(respon)
+    
 })
 
 // create route request get for /profile/list
@@ -56,7 +74,7 @@ app.get('/profile/list',async(req,res)=>{
     const respon={
         statusCode:200,
         error:"",
-        message:"List founded",
+        message:"List found",
         content:result
     }
     res.json(respon).status(respon.statusCode)
@@ -68,7 +86,7 @@ app.get('/profile/detail/:id',async(req,res)=>{
     const respon={
         statusCode:200,
         error:"",
-        message:"Detail founded",
+        message:"Detail found",
         content:result
     }
     res.json(respon).status(respon.statusCode)
@@ -88,4 +106,33 @@ app.put('/profile/update/:id',async(req,res)=>{
         }
     }
     res.json(respon)
+})
+
+// create delete request get for /profile/delete/:id
+app.delete('/profile/delete/:id',async(req,res)=>{
+    const checkId=Mongoose.Types.ObjectId.isValid(req.params.id) // check id valid
+    let statusCode=200
+    let error=""
+    let message="Detail deleted"
+    let result=null
+        // validasi
+        if(checkId){
+            result=await PersonModel.findByIdAndDelete(req.params.id).exec()
+            if(!result) {
+                statusCode=404
+                error="Request Parameter is invalid"
+                message="Object Id not found"    
+            }
+        } else {
+            statusCode=404
+            error="Request Parameter is invalid"
+            message="Object Id is invalid"  
+        }
+    const respon={
+        statusCode:statusCode,
+        error:error,
+        message:message,
+        content:result
+    }
+    res.status(statusCode).json(respon)
 })
