@@ -15,9 +15,6 @@ const PersonModel=Mongoose.model('person',{
 app.use(bodyParser.urlencoded({extended:true})) // menangkap request dalam bentuk form url-encoded
 app.use(bodyParser.json()) // menangkap request dalam bentuk json
 
-// run server
-app.listen(port,()=>console.log(`Server listening on port ${port}`))
-
 // create route request get for root
 app.get('/',(req,res)=>res.send('Hello World!'))
 
@@ -135,3 +132,10 @@ app.delete('/profile/delete/:id',async(req,res)=>{
     }
     res.status(statusCode).json(respon)
 })
+
+// membuat route todo
+var todoRoute=require('./routes/todoRoute')
+app.use('/todo',todoRoute)
+
+// run server
+app.listen(port,()=>console.log(`Server listening on port ${port}`))
