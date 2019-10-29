@@ -59,5 +59,17 @@ app.get('/profile/list',async(req,res)=>{
         message:"found",
         content:result
     }
-    res.json(respon)
+    res.json(respon).status(respon.statusCode)
+})
+
+// create route request get for /profile/detail/:id
+app.get('/profile/detail/:id',async(req,res)=>{
+    var result=await PersonModel.findById(req.params.id).exec() // Jalankan query find
+    const respon={
+        statusCode:200,
+        error:"",
+        message:"founded",
+        content:result
+    }
+    res.json(respon).status(respon.statusCode)
 })
