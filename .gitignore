@@ -1,0 +1,8 @@
+# Node build
+node_modules
+npm-debug.log
+
+# local development
+*.env
+*.dev
+.DS_STORE
