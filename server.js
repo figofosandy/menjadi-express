@@ -2,6 +2,14 @@ const express=require('express') // importing module express
 const app=express(); 
 const port=3007
 const bodyParser=require('body-parser') // importing module body-parser
+const Mongoose=require('./MongoModel/MongoConfig') // importing module for global connection mongoose mongodb
+
+// mongoose : creating new model
+const PersonModel=Mongoose.model('person',{
+    // namaField:dataType
+    firstName:String,
+    lastName:String
+})
 
 // konfigurasi body-parser
 app.use(bodyParser.urlencoded({extended:true})) // menangkap request dalam bentuk form url-encoded
@@ -18,7 +26,26 @@ app.post('/hello',function(req,res){
     const respon={
         statusCode:200,
         error:"",
-        message:"Hello JSON"
+        message:"Hello JSON",
+        content:req.body
+    }
+    res.json(respon)
+})
+
+// create route request post for /profile/create
+app.post('/profile/create',async(req,res)=>{
+    console.log(req.body) // show input in console
+    const input={
+        firstName:req.body.firstName,
+        lastName:req.body.lastName
+    } // menambahkan value dari input ke field Model
+    var person=new PersonModel(input) // Membuat model baru
+    var result=await person.save() // Jalankan query create
+    const respon={
+        statusCode:200,
+        error:"",
+        message:"created",
+        content:result
     }
     res.json(respon)
 })
