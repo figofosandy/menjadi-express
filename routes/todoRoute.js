@@ -50,4 +50,31 @@ router.get('/list',async(req,res)=>{
     }
 })
 
+// update
+router.put('/update/:id',async(req,res)=>{
+    try {
+        const todo=await Models.Todo.update(
+            req.body,
+            {
+                where:{
+                    userId:req.params.id
+                }
+            }        
+        )
+        const response={
+            statusCode:200,
+            error:"",
+            message:"Data Updated",
+            content:todo
+        }
+        res.json(response)
+    } catch (error) {
+        const response={
+            statusCode:404,
+            error:error.name
+        }
+        res.status(404).json(response)
+    }
+})
+
 module.exports=router
