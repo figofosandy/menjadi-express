@@ -56,7 +56,7 @@ app.get('/profile/list',async(req,res)=>{
     const respon={
         statusCode:200,
         error:"",
-        message:"found",
+        message:"List founded",
         content:result
     }
     res.json(respon).status(respon.statusCode)
@@ -68,8 +68,26 @@ app.get('/profile/detail/:id',async(req,res)=>{
     const respon={
         statusCode:200,
         error:"",
-        message:"founded",
+        message:"Detail founded",
         content:result
     }
     res.json(respon).status(respon.statusCode)
 })
+
+// create put request get for /profile/update/:id
+app.put('/profile/update/:id',async(req,res)=>{
+    var result=await PersonModel.findByIdAndUpdate(req.params.id,
+        {
+            firstName:req.body.firstName,
+            lastName:req.body.lastName
+        }
+    ).exec()
+    const respon={
+        statusCode:200,
+        error:"",
+        message:"Detail changed",
+        content:result
+    }
+    res.json(respon)
+})
+
