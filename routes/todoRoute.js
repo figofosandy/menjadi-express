@@ -77,4 +77,30 @@ router.put('/update/:id',async(req,res)=>{
     }
 })
 
+// delete
+router.delete('/delete/:id',async(req,res)=>{
+    try {
+        const todo=await Models.Todo.destroy(
+            {
+                where:{
+                    userId:req.params.id
+                }
+            }        
+        )
+        const response={
+            statusCode:200,
+            error:"",
+            message:"Data Deleted",
+            content:todo
+        }
+        res.json(response)
+    } catch (error) {
+        const response={
+            statusCode:404,
+            error:error.name
+        }
+        res.status(404).json(response)
+    }
+})
+
 module.exports=router
