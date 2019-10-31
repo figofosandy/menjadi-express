@@ -4,7 +4,7 @@
     "password": "jnEwP59Xll",
     "database": "4DiifuL5Et",
     "host": "remotemysql.com",
-    "port": "3306",
+    "port": 3306,
     "dialect": "mysql",
     "operatorsAliases": false
   },
@@ -13,7 +13,7 @@
     "password": "jnEwP59Xll",
     "database": "4DiifuL5Et",
     "host": "remotemysql.com",
-    "port": "3306",
+    "port": 3306,
     "dialect": "mysql",
     "operatorsAliases": false
   },
@@ -22,7 +22,7 @@
     "password": "jnEwP59Xll",
     "database": "4DiifuL5Et",
     "host": "remotemysql.com",
-    "port": "3306",
+    "port": 3306,
     "dialect": "mysql",
     "operatorsAliases": false
   }
