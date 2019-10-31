@@ -138,4 +138,4 @@ var todoRoute=require('./routes/todoRoute')
 app.use('/todo',todoRoute)
 
 // run server
-app.listen(port,()=>console.log(`Server listening on port ${port}`))
+app.listen(port,'0.0.0.0',()=>console.log(`Server listening on port ${port}`))
