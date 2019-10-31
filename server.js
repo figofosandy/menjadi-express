@@ -1,6 +1,6 @@
 const express=require('express') // importing module express
 const app=express(); 
-const port=5000
+const port= process.env.PORT || 3000;
 const bodyParser=require('body-parser') // importing module body-parser
 const Mongoose=require('./MongoModel/MongoConfig') // importing module for global connection mongoose mongodb
 
