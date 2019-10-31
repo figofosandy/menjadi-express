@@ -4,22 +4,25 @@
     "password": "jnEwP59Xll",
     "database": "4DiifuL5Et",
     "host": "remotemysql.com",
+    "port": "3306",
     "dialect": "mysql",
     "operatorsAliases": false
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
-    "host": "127.0.0.1",
+    "username": "4DiifuL5Et",
+    "password": "jnEwP59Xll",
+    "database": "4DiifuL5Et",
+    "host": "remotemysql.com",
+    "port": "3306",
     "dialect": "mysql",
     "operatorsAliases": false
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
+    "username": "4DiifuL5Et",
+    "password": "jnEwP59Xll",
+    "database": "4DiifuL5Et",
+    "host": "remotemysql.com",
+    "port": "3306",
     "dialect": "mysql",
     "operatorsAliases": false
   }
