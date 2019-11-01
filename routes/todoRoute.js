@@ -50,30 +50,6 @@ router.get('/list',async(req,res)=>{
     }
 })
 
-// detail
-router.get('/detail/:id',async(req,res)=>{
-    try {
-        const todo=await Models.Todo.findAll({
-            where:{
-                id:req.params.id
-            }
-        })
-        const response={
-            statusCode:200,
-            error:"",
-            message:"Detail Found",
-            content:todo
-        }
-        res.json(response)
-    } catch (error) {
-        const response={
-            statusCode:404,
-            error:error.name
-        }
-        res.status(404).json(response)
-    }
-})
-
 // update
 router.put('/update/:id',async(req,res)=>{
     try {
