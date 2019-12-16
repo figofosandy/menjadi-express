@@ -1,141 +1,161 @@
-const express=require('express') // importing module express
-const app=express(); 
-const port= process.env.PORT || 3000;
-const bodyParser=require('body-parser') // importing module body-parser
-const Mongoose=require('./MongoModel/MongoConfig') // importing module for global connection mongoose mongodb
+const Hapi=require('@hapi/hapi')
+const Joi=require('@hapi/joi')
+const Bcrypt=require('bcrypt')
+const qs=require('qs')
 
-// mongoose : creating new model
-const PersonModel=Mongoose.model('person',{
-    // namaField:dataType
-    firstName:String,
-    lastName:String
-})
-
-// konfigurasi body-parser
-app.use(bodyParser.urlencoded({extended:true})) // menangkap request dalam bentuk form url-encoded
-app.use(bodyParser.json()) // menangkap request dalam bentuk json
-
-// create route request get for root
-app.get('/',(req,res)=>res.send('Hello World!'))
-
-// create route request post for /hello
-app.post('/hello',function(req,res){
-    const respon={
-        statusCode:200,
-        error:"",
-        message:"Hello JSON",
-        content:req.body
+const users={
+    user:{
+        username:'user',
+        password:'$2a$04$BB3BAXMwyqkRhPjs7kUgXuWn7.pYxNXHyyDzD3fDo5xACgF2KFsCi',
+        name:'Just User',
+        id:'123456'
     }
-    res.json(respon)
-})
+}
 
-// create route request post for /profile/create
-app.post('/profile/create',async(req,res)=>{
-    console.log(req.body) // show input in console
-    let statusCode=200
-    let error=""
-    let message=""
-    let result=null
-    if(!req.body.firstName||!req.body.lastName){
-        statusCode=400
-        let missing=""
-        if(!req.body.firstName){
-            missing+="firstname "
+const validate=async(request,username,password)=>{
+    const user=users[username]
+    if(!user){
+        return {credentials:null,isValid:false}
+    }
+    const isValid=await Bcrypt.compare(password, user.password)
+    const credentials={id:user.id,name:user.name}
+    return {isValid,credentials}
+}
+
+const getDate=(date)=>{
+    const thisDate=new Date(date)
+    return thisDate.toISOString().slice(0,10)
+}
+
+const getDateLog=(date)=>{
+    return `logs/${getDate(date)}.log`
+}
+
+const start=async()=>{
+    const {rootHandler,tasksGetHandler,tasksDetailGetHandler,tasksPostHandler,tasksPutHandler,tasksActionHandler,getDetail}=require('./handler')
+    const server=Hapi.server({
+        port:1207,
+        host:'0.0.0.0',
+        query:{
+            parser:(query)=>qs.parse(query)
         }
-        if(!req.body.lastName){
-            missing+="lastname "
+    })
+    
+    await server.register(require('@hapi/basic'))
+
+    await server.register({
+        plugin:require('hapi-pino'),
+        options:{
+            prettyPrint:process.env.NODE_ENV!=='production',
+            redact:['req.headers.authorization'],
+            stream:getDateLog(Date.now())
         }
-        error=missing+"payload is required"
-        message=error
-    } else {
-        const input={
-            firstName:req.body.firstName,
-            lastName:req.body.lastName
-        } // menambahkan value dari input ke field Model
-        var person=new PersonModel(input) // Membuat model baru
-        result=await person.save() // Jalankan query create
-    }
-    const respon={
-        statusCode:statusCode,
-        error:error,
-        message:message,
-        content:result
-    }
-    res.status(statusCode).json(respon)
-})
+    })
 
-// create route request get for /profile/list
-app.get('/profile/list',async(req,res)=>{
-    var result=await PersonModel.find().exec() // Jalankan query find
-    const respon={
-        statusCode:200,
-        error:"",
-        message:"List found",
-        content:result
-    }
-    res.json(respon).status(respon.statusCode)
-})
+    server.auth.strategy('simple','basic',{validate})
 
-// create route request get for /profile/detail/:id
-app.get('/profile/detail/:id',async(req,res)=>{
-    var result=await PersonModel.findById(req.params.id).exec() // Jalankan query find
-    const respon={
-        statusCode:200,
-        error:"",
-        message:"Detail found",
-        content:result
-    }
-    res.json(respon).status(respon.statusCode)
-})
-
-// create put request get for /profile/update/:id
-app.put('/profile/update/:id',async(req,res)=>{
-    var result=await PersonModel.findByIdAndUpdate(req.params.id,req.body).exec()
-    var found=await PersonModel.findById(req.params.id)
-    const respon={
-        statusCode:200,
-        error:"",
-        message:"Detail changed",
-        content:{
-            before:result,
-            after:found
-        }
-    }
-    res.json(respon)
-})
-
-// create delete request get for /profile/delete/:id
-app.delete('/profile/delete/:id',async(req,res)=>{
-    const checkId=Mongoose.Types.ObjectId.isValid(req.params.id) // check id valid
-    let statusCode=200
-    let error=""
-    let message="Detail deleted"
-    let result=null
-        // validasi
-        if(checkId){
-            result=await PersonModel.findByIdAndDelete(req.params.id).exec()
-            if(!result) {
-                statusCode=404
-                error="Request Parameter is invalid"
-                message="Object Id not found"    
+    server.route({
+        method:'GET',
+        path:'/',
+        handler:rootHandler
+    })
+    
+    server.route({
+        method:'GET',
+        path:'/tasks',
+        handler:tasksGetHandler,
+        options:{
+            auth:'simple',
+            validate:{
+                query:{
+                    sort:Joi.string(),
+                    offset:Joi.number().integer().min(0),
+                    limit:Joi.number().integer().min(1),
+                    filter:Joi.object(),
+                    dueDate:Joi.date()
+                }
             }
-        } else {
-            statusCode=404
-            error="Request Parameter is invalid"
-            message="Object Id is invalid"  
         }
-    const respon={
-        statusCode:statusCode,
-        error:error,
-        message:message,
-        content:result
-    }
-    res.status(statusCode).json(respon)
-})
+    })
 
-// membuat route todo
-var todoRoute=require('./routes/todoRoute')
-app.use('/todo',todoRoute)
+    server.route({
+        method:'GET',
+        path:'/tasks/{id}',
+        handler:tasksDetailGetHandler,
+        options:{
+            auth:'simple',
+            validate:{
+                params:{
+                    id:Joi.number().integer().min(1)
+                }
+            }
+        }
+    })
 
-// run server
-app.listen(port,()=>console.log(`Server listening on port ${port}`))
+    server.route({
+        method:'POST',
+        path:'/tasks',
+        handler:tasksPostHandler,
+        options:{
+            auth:'simple',
+            validate:{
+                payload:{
+                    id:Joi.forbidden(),
+                    title:Joi.string().regex(/^[a-zA-Z]+(\s*[a-zA-Z])*$/).required(),
+                    description:Joi.string().regex(/^[a-zA-Z]+(\s*[a-zA-Z])*$/).required(),
+                    dueDate:Joi.date().min(getDate(Date.now())).required(),
+                    comments:Joi.array().required(),
+                    status:Joi.forbidden()
+                }
+            }
+        }
+    })
+
+    server.route({
+        method:'PUT',
+        path:'/tasks/{id}',
+        handler:tasksPutHandler,
+        options:{
+            auth:'simple',
+            validate:{
+                params:{
+                    id:Joi.number().integer()
+                },
+                payload:{
+                    id:Joi.number().integer(),
+                    title:Joi.string().regex(/^[a-zA-Z]+(\s*[a-zA-Z])*$/),
+                    description:Joi.string().regex(/^[a-zA-Z]+(\s*[a-zA-Z])*$/),
+                    dueDate:Joi.date().min(getDate(Date.now())),
+                    comments:Joi.array(),
+                    status:Joi.forbidden()
+                }
+            }
+        }
+    })
+
+    server.route({
+        method:'POST',
+        path:'/tasks/{id}/{action}',
+        handler:tasksActionHandler,
+        options:{
+            auth:'simple',
+            validate:{
+                params:{
+                    id:Joi.number().integer(),
+                    action:Joi.string()
+                }
+            }
+        }
+    })
+
+    await server.start()
+
+    process.on('unhandledRejection',(err)=>{
+        console.log(err)
+        process.exit(1)
+    })
+    
+    return server
+}
+
+module.exports={start}
