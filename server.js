@@ -34,7 +34,7 @@ const getDateLog=(date)=>{
 const start=async()=>{
     const {rootHandler,tasksGetHandler,tasksDetailGetHandler,tasksPostHandler,tasksPutHandler,tasksActionHandler,getDetail}=require('./handler')
     const server=Hapi.server({
-        port:PROCESS.ENV>PORT||1207,
+        port:PROCESS.ENV.PORT||80,
         host:'0.0.0.0',
         query:{
             parser:(query)=>qs.parse(query)
