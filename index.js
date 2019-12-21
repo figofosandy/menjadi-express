@@ -1,6 +1,6 @@
 const {start}=require('./server')
 
-start(`mongodb://localhost/dkata`)
+start()
     .then((server)=>{
         console.log(`Server running on ${server.info.uri}`)
     })
